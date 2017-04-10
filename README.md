@@ -1,4 +1,4 @@
 # Servidor DNS
 
-- Moisés Carral Ortiz
-- Alberto Estévez Caldas
+ - Moisés Carral Ortiz
+ - Alberto Estévez Caldas
