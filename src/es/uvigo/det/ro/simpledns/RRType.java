@@ -27,7 +27,7 @@ public enum RRType {
     TXT(16), // text strings
     AAAA(28); // an IPv6 host address*/
 
-    static RRType fromByteArray(final byte[] bytes) throws Exception {
+    public static RRType fromByteArray(final byte[] bytes) throws Exception {
         final int val = Utils.int16fromByteArray(bytes);
         
         for (RRType id : values()) {
