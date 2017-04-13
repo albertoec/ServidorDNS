@@ -1,23 +1,19 @@
-import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.AnnotatedWildcardType;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.SocketException;
-import java.net.StandardSocketOptions;
 import java.net.UnknownHostException;
 import java.util.Scanner;
 
 import es.uvigo.det.ro.simpledns.AAAAResourceRecord;
 import es.uvigo.det.ro.simpledns.AResourceRecord;
-import es.uvigo.det.ro.simpledns.DomainName;
 import es.uvigo.det.ro.simpledns.Message;
 import es.uvigo.det.ro.simpledns.NSResourceRecord;
-import es.uvigo.det.ro.simpledns.RRClass;
 import es.uvigo.det.ro.simpledns.RRType;
-import es.uvigo.det.ro.simpledns.ResourceRecord;
-import ficheros.Fichero;;
+import es.uvigo.det.ro.simpledns.ResourceRecord;;
 
 public class Cliente {
 
@@ -29,9 +25,9 @@ public class Cliente {
 			String protocol = new Cliente().validacionComando(args);
 			Scanner stadin = new Scanner(System.in);
 
-			//EJECUTAMOS HASTA QUE PULSEMOS CTR+D EN LA ENTRADA ESTANDAR
+			// EJECUTAMOS HASTA QUE PULSEMOS CTR+D EN LA ENTRADA ESTANDAR
 			while (true) {
-				
+
 				System.out.println("Introduzca el dominio a traducir:\n");
 				String entrada = stadin.nextLine();
 
@@ -41,8 +37,8 @@ public class Cliente {
 				Message outputMessage = new Cliente().generarMensaje(entrada);
 
 				// IMPRIMOS EL MENSAJE Q:
-				System.out.println("Q: " + protocol + "   " + ip.toString().replace("/", "") + "   " + outputMessage.getQuestionType() + "   "
-						+ outputMessage.getQuestion() + "\n");
+				System.out.println("Q: " + protocol + "   " + ip.toString().replace("/", "") + "   "
+						+ outputMessage.getQuestionType() + "   " + outputMessage.getQuestion() + "\n");
 
 				byte[] buf = outputMessage.toByteArray();
 
@@ -59,29 +55,53 @@ public class Cliente {
 				Message answerMessage = new Message(inputUdpPacket.getData());
 				Message temporalMessage = new Message(inputUdpPacket.getData());
 
+				// MIRAMOS QUE ES LO QUE ESTAMOS BUSCANDO
+				/*
+				 * switch(outputMessage.getQuestionType().toString()){
+				 * 
+				 * case "A": new Cliente(); break;
+				 * 
+				 * case "NS": new Cliente(); break; }
+				 */
+
 				// LEEMOS EL CAMPO ADDITIONALRECORDS MIENTRAS
 				int i = 0;
 				while (answerMessage.getAnswers().isEmpty()) {
-
+					System.out.println(i);
+					// System.out.println(answerMessage.getAdditonalRecords());
 					if (answerMessage.getAdditonalRecords().get(i) instanceof AResourceRecord) {
 						System.out.println("SII-ARESOURCERECORD");
 						outputUdpPacket.setAddress(
 								((AResourceRecord) answerMessage.getAdditonalRecords().get(i)).getAddress());
 						new Cliente().pantallaRR(answerMessage);
+						System.out.println("Esta es la ip con la que contactamos: " + outputUdpPacket.getAddress());
 						socketUDP.send(outputUdpPacket);
 						socketUDP.receive(inputUdpPacket);
 						answerMessage = new Message(inputUdpPacket.getData());
-						System.out.println(answerMessage.getAnswers().isEmpty());
 
-						/*if (answerMessage.getAdditonalRecords().isEmpty() && answerMessage.getAnswers().isEmpty()) {
+						if (answerMessage.getAdditonalRecords().isEmpty() && answerMessage.getAnswers().isEmpty()) {
+							System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 							answerMessage = temporalMessage;
 							i++;
-						} else
-							i = 0;*/
+						} else {
+							i = 0;
+							temporalMessage = answerMessage;
+						}
 					} else if (answerMessage.getAdditonalRecords().get(i) instanceof AAAAResourceRecord) {
+						System.out.println("PASAMOS ES UN AAAA");
+						/*new Cliente().pantallaRR(answerMessage);
+						outputUdpPacket.setAddress(
+								(Inet6Address) (((AAAAResourceRecord) answerMessage.getAdditonalRecords().get(i))
+										.getAddress()));
+						System.out.println("Esta es la ip con la que contactamos: " + outputUdpPacket.getAddress());
+						DatagramSocket socketUDPipv6 = new DatagramSocket();
+						socketUDPipv6.send(outputUdpPacket);
+						socketUDPipv6.receive(inputUdpPacket);
+						answerMessage = new Message(inputUdpPacket.getData());*/
 						i++;
 						continue;
 					}
+
 				}
 				new Cliente().pantallaRR(answerMessage);
 
@@ -125,7 +145,7 @@ public class Cliente {
 				if (rr instanceof AAAAResourceRecord)
 					System.out.println(rr.getDomain() + "  " + rr.getRRType() + "  " + rr.getTTL() + "  "
 							+ ((AAAAResourceRecord) rr).getAddress());
-				if(rr instanceof NSResourceRecord){
+				if (rr instanceof NSResourceRecord) {
 					System.out.println(rr.getDomain() + "  " + rr.getRRType() + "  " + rr.getTTL() + "  "
 							+ ((NSResourceRecord) rr).getNS());
 				}
@@ -138,7 +158,7 @@ public class Cliente {
 			if (rr instanceof AAAAResourceRecord)
 				System.out.println(rr.getDomain() + "  " + rr.getRRType() + "  " + rr.getTTL() + "  "
 						+ ((AAAAResourceRecord) rr).getAddress());
-			if(rr instanceof NSResourceRecord){
+			if (rr instanceof NSResourceRecord) {
 				System.out.println(rr.getDomain() + "  " + rr.getRRType() + "  " + rr.getTTL() + "  "
 						+ ((NSResourceRecord) rr).getNS());
 			}
@@ -171,13 +191,12 @@ public class Cliente {
 
 	}
 
-	public Message generarMensaje(String entrada){
-		
+	public Message generarMensaje(String entrada) {
+
 		String[] split = entrada.split("\\s* \\s*");
 		Message message = new Message(split[1], RRType.valueOf(split[0]), false);
 		return message;
 	}
-	
 
 	/**
 	 * Método para validar la IP si es necesario
