@@ -67,20 +67,21 @@ public class Cliente {
 				// LEEMOS EL CAMPO ADDITIONALRECORDS MIENTRAS
 				int i = 0;
 				while (answerMessage.getAnswers().isEmpty()) {
-					System.out.println(i);
-					// System.out.println(answerMessage.getAdditonalRecords());
+					System.out.println("ITERACION Nº: " + i);
+
 					if (answerMessage.getAdditonalRecords().get(i) instanceof AResourceRecord) {
 						System.out.println("SII-ARESOURCERECORD");
 						outputUdpPacket.setAddress(
 								((AResourceRecord) answerMessage.getAdditonalRecords().get(i)).getAddress());
-						new Cliente().pantallaRR(answerMessage);
-						System.out.println("Esta es la ip con la que contactamos: " + outputUdpPacket.getAddress());
+						new Cliente().pantallaRR(answerMessage, 0);
+						System.out.println("\nEsta es la ip con la que contactamos: " + outputUdpPacket.getAddress());
 						socketUDP.send(outputUdpPacket);
 						socketUDP.receive(inputUdpPacket);
 						answerMessage = new Message(inputUdpPacket.getData());
 
 						if (answerMessage.getAdditonalRecords().isEmpty() && answerMessage.getAnswers().isEmpty()) {
-							System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+							System.out.println("ESTÁ TODO VACÍO PUTO");
+							new Cliente().pantallaRR(answerMessage, 1);
 							answerMessage = temporalMessage;
 							i++;
 						} else {
@@ -89,21 +90,25 @@ public class Cliente {
 						}
 					} else if (answerMessage.getAdditonalRecords().get(i) instanceof AAAAResourceRecord) {
 						System.out.println("PASAMOS ES UN AAAA");
-						/*new Cliente().pantallaRR(answerMessage);
-						outputUdpPacket.setAddress(
-								(Inet6Address) (((AAAAResourceRecord) answerMessage.getAdditonalRecords().get(i))
-										.getAddress()));
-						System.out.println("Esta es la ip con la que contactamos: " + outputUdpPacket.getAddress());
-						DatagramSocket socketUDPipv6 = new DatagramSocket();
-						socketUDPipv6.send(outputUdpPacket);
-						socketUDPipv6.receive(inputUdpPacket);
-						answerMessage = new Message(inputUdpPacket.getData());*/
+						/*
+						 * new Cliente().pantallaRR(answerMessage);
+						 * outputUdpPacket.setAddress( (Inet6Address)
+						 * (((AAAAResourceRecord)
+						 * answerMessage.getAdditonalRecords().get(i))
+						 * .getAddress())); System.out.
+						 * println("Esta es la ip con la que contactamos: " +
+						 * outputUdpPacket.getAddress()); DatagramSocket
+						 * socketUDPipv6 = new DatagramSocket();
+						 * socketUDPipv6.send(outputUdpPacket);
+						 * socketUDPipv6.receive(inputUdpPacket); answerMessage
+						 * = new Message(inputUdpPacket.getData());
+						 */
 						i++;
 						continue;
 					}
 
 				}
-				new Cliente().pantallaRR(answerMessage);
+				new Cliente().pantallaRR(answerMessage, 1);
 
 				// System.out.println("\n\n" + answerMessage.getAnswers());
 
@@ -135,10 +140,25 @@ public class Cliente {
 
 	}
 
-	public void pantallaRR(Message answerMessage) {
-		System.out.println("\nAnswers:\n\n");
-		if (!answerMessage.getAnswers().isEmpty())
-			for (ResourceRecord rr : answerMessage.getAnswers()) {
+	public void pantallaRR(Message answerMessage, int a) {
+
+		if (a == 0) {
+			System.out.println("\nAnswers:\n\n");
+			if (!answerMessage.getAnswers().isEmpty())
+				for (ResourceRecord rr : answerMessage.getAnswers()) {
+					if (rr instanceof AResourceRecord)
+						System.out.println(rr.getDomain() + "  " + rr.getRRType() + "  " + rr.getTTL() + "  "
+								+ ((AResourceRecord) rr).getAddress());
+					if (rr instanceof AAAAResourceRecord)
+						System.out.println(rr.getDomain() + "  " + rr.getRRType() + "  " + rr.getTTL() + "  "
+								+ ((AAAAResourceRecord) rr).getAddress());
+					if (rr instanceof NSResourceRecord) {
+						System.out.println(rr.getDomain() + "  " + rr.getRRType() + "  " + rr.getTTL() + "  "
+								+ ((NSResourceRecord) rr).getNS());
+					}
+				}
+			System.out.println("\nAdditional Section:\n\n");
+			for (ResourceRecord rr : answerMessage.getAdditonalRecords()) {
 				if (rr instanceof AResourceRecord)
 					System.out.println(rr.getDomain() + "  " + rr.getRRType() + "  " + rr.getTTL() + "  "
 							+ ((AResourceRecord) rr).getAddress());
@@ -150,17 +170,10 @@ public class Cliente {
 							+ ((NSResourceRecord) rr).getNS());
 				}
 			}
-		System.out.println("\nAdditional Section:\n\n");
-		for (ResourceRecord rr : answerMessage.getAdditonalRecords()) {
-			if (rr instanceof AResourceRecord)
-				System.out.println(rr.getDomain() + "  " + rr.getRRType() + "  " + rr.getTTL() + "  "
-						+ ((AResourceRecord) rr).getAddress());
-			if (rr instanceof AAAAResourceRecord)
-				System.out.println(rr.getDomain() + "  " + rr.getRRType() + "  " + rr.getTTL() + "  "
-						+ ((AAAAResourceRecord) rr).getAddress());
-			if (rr instanceof NSResourceRecord) {
-				System.out.println(rr.getDomain() + "  " + rr.getRRType() + "  " + rr.getTTL() + "  "
-						+ ((NSResourceRecord) rr).getNS());
+		} else {
+			System.out.println("\nName servers:\n\n");
+			for (ResourceRecord rr : answerMessage.getNameServers()) {
+				System.out.println(((NSResourceRecord) rr).getNS());
 			}
 		}
 	}
