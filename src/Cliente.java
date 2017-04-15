@@ -1,19 +1,16 @@
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.Inet6Address;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.List;
 import java.util.Scanner;
 
 import es.uvigo.det.ro.simpledns.AAAAResourceRecord;
 import es.uvigo.det.ro.simpledns.AResourceRecord;
-import es.uvigo.det.ro.simpledns.Message;
 import es.uvigo.det.ro.simpledns.NSResourceRecord;
-import es.uvigo.det.ro.simpledns.RRType;
-import es.uvigo.det.ro.simpledns.ResourceRecord;;
+import es.uvigo.det.ro.simpledns.ResourceRecord;
+import es.vilagarcia.forocoches.Communication;
+import pantalla.PantallaUtils;;
 
 public class Cliente {
 
@@ -28,32 +25,24 @@ public class Cliente {
 			// EJECUTAMOS HASTA QUE PULSEMOS CTR+D EN LA ENTRADA ESTANDAR
 			while (true) {
 
-				System.out.println("Introduzca el dominio a traducir:\n");
+				System.out.println("******************************************\n\nIntroduzca el dominio a traducir:\n");
 				String entrada = stadin.nextLine();
 
 				InetAddress ip = InetAddress.getByName(args[2]);
-				DatagramSocket socketUDP = new DatagramSocket();
 
-				Message outputMessage = new Cliente().generarMensaje(entrada);
+				Communication initCommunication = new Communication(ip, entrada);
 
 				// IMPRIMOS EL MENSAJE Q:
 				System.out.println("Q: " + protocol + "   " + ip.toString().replace("/", "") + "   "
-						+ outputMessage.getQuestionType() + "   " + outputMessage.getQuestion() + "\n");
-
-				byte[] buf = outputMessage.toByteArray();
-
-				DatagramPacket outputUdpPacket = new DatagramPacket(buf, buf.length, ip, 53);
-				outputUdpPacket.setAddress(ip);
-				socketUDP.send(outputUdpPacket);
-
-				byte[] inputBuf = new byte[socketUDP.getReceiveBufferSize()];
-				DatagramPacket inputUdpPacket = new DatagramPacket(inputBuf, inputBuf.length);
-				socketUDP.receive(inputUdpPacket);
+						+ initCommunication.getOutput().getQuestionType() + "   "
+						+ initCommunication.getOutput().getQuestion() + "\n");
 
 				// CREAMOS EL MENSAJE DE RESPUESTA Y EMPEZAMOS A ANALIZAR LA
 				// INFORMACIÓN
-				Message answerMessage = new Message(inputUdpPacket.getData());
-				Message temporalMessage = new Message(inputUdpPacket.getData());
+				// Message answerMessage = new
+				// Message(inputUdpPacket.getData());
+				// Message temporalMessage = new
+				// Message(inputUdpPacket.getData());
 
 				// MIRAMOS QUE ES LO QUE ESTAMOS BUSCANDO
 				/*
@@ -64,70 +53,35 @@ public class Cliente {
 				 * case "NS": new Cliente(); break; }
 				 */
 
-				// LEEMOS EL CAMPO ADDITIONALRECORDS MIENTRAS
-				int i = 0;
-				while (answerMessage.getAnswers().isEmpty()) {
-					System.out.println("ITERACION Nº: " + i);
+				initCommunication.changeInformation();
+				List<ResourceRecord> nameServers;
+				nameServers = initCommunication.getInput().getNameServers();
 
-					if (answerMessage.getAdditonalRecords().get(i) instanceof AResourceRecord) {
-						System.out.println("SII-ARESOURCERECORD");
-						outputUdpPacket.setAddress(
-								((AResourceRecord) answerMessage.getAdditonalRecords().get(i)).getAddress());
-						new Cliente().pantallaRR(answerMessage, 0);
-						System.out.println("\nEsta es la ip con la que contactamos: " + outputUdpPacket.getAddress());
-						socketUDP.send(outputUdpPacket);
-						socketUDP.receive(inputUdpPacket);
-						answerMessage = new Message(inputUdpPacket.getData());
+				try {
+					new Cliente().iteraciones(initCommunication, nameServers);
 
-						if (answerMessage.getAdditonalRecords().isEmpty() && answerMessage.getAnswers().isEmpty()) {
-							System.out.println("ESTÁ TODO VACÍO PUTO");
-							new Cliente().pantallaRR(answerMessage, 1);
-							answerMessage = temporalMessage;
-							i++;
-						} else {
-							i = 0;
-							temporalMessage = answerMessage;
+					// LA EXCEPCION SALTA CUANDO NO EXISTE RESPUESTA ALGUNA
+				} catch (IndexOutOfBoundsException e) {
+					//e.printStackTrace();
+					//System.out.println("Exception");
+					for (ResourceRecord rr : nameServers) {
+						Communication nameServersCommunication = new Communication(initCommunication.getIp(),
+								((NSResourceRecord)rr).getNS(), "A");
+						System.out.println("BUSCAMOS" + ((NSResourceRecord)rr).getNS() + "*****");
+						nameServersCommunication.changeInformation();
+						new Cliente().iteraciones(nameServersCommunication, nameServers);
+						if(!nameServersCommunication.getInput().getAnswers().isEmpty()){
+							new PantallaUtils().pantallaRR(nameServersCommunication.getInput(), 0);
+							break;
 						}
-					} else if (answerMessage.getAdditonalRecords().get(i) instanceof AAAAResourceRecord) {
-						System.out.println("PASAMOS ES UN AAAA");
-						/*
-						 * new Cliente().pantallaRR(answerMessage);
-						 * outputUdpPacket.setAddress( (Inet6Address)
-						 * (((AAAAResourceRecord)
-						 * answerMessage.getAdditonalRecords().get(i))
-						 * .getAddress())); System.out.
-						 * println("Esta es la ip con la que contactamos: " +
-						 * outputUdpPacket.getAddress()); DatagramSocket
-						 * socketUDPipv6 = new DatagramSocket();
-						 * socketUDPipv6.send(outputUdpPacket);
-						 * socketUDPipv6.receive(inputUdpPacket); answerMessage
-						 * = new Message(inputUdpPacket.getData());
-						 */
-						i++;
-						continue;
 					}
-
 				}
-				new Cliente().pantallaRR(answerMessage, 1);
+				// LEEMOS EL CAMPO ADDITIONALRECORDS MIENTRAS
 
-				// System.out.println("\n\n" + answerMessage.getAnswers());
-
-				// YA HEMOS ENCONTRADA UNA QUERY QUE NO TIENE VACIA EL APARTADO
-				// ANSWER
-
-				/*
-				 * for (ResourceRecord answers : answerMessage.getAnswers()) {
-				 * if (answers instanceof AResourceRecord) { AResourceRecord aRR
-				 * = (AResourceRecord) answers; System.out.println( "A: " +
-				 * answers.getRRType() + "   " + answers.getTTL() + "   " +
-				 * aRR.getAddress() + "\n"); } if (answers instanceof
-				 * AAAAResourceRecord) { AAAAResourceRecord aRR =
-				 * (AAAAResourceRecord) answers; System.out.println( "A:" +
-				 * answers.getRRType() + "   " + answers.getTTL() + "   " +
-				 * aRR.getAddress() + "\n"); } }
-				 */
-
+				new PantallaUtils().pantallaRR(initCommunication.getInput(), 0);
+			
 			}
+
 		} catch (SocketException e) {
 			e.printStackTrace();
 		} catch (UnknownHostException e1) {
@@ -140,42 +94,57 @@ public class Cliente {
 
 	}
 
-	public void pantallaRR(Message answerMessage, int a) {
+	public void iteraciones(Communication initCommunication, List<ResourceRecord> nameServers)
+			throws Exception, ArrayIndexOutOfBoundsException {
 
-		if (a == 0) {
-			System.out.println("\nAnswers:\n\n");
-			if (!answerMessage.getAnswers().isEmpty())
-				for (ResourceRecord rr : answerMessage.getAnswers()) {
-					if (rr instanceof AResourceRecord)
-						System.out.println(rr.getDomain() + "  " + rr.getRRType() + "  " + rr.getTTL() + "  "
-								+ ((AResourceRecord) rr).getAddress());
-					if (rr instanceof AAAAResourceRecord)
-						System.out.println(rr.getDomain() + "  " + rr.getRRType() + "  " + rr.getTTL() + "  "
-								+ ((AAAAResourceRecord) rr).getAddress());
-					if (rr instanceof NSResourceRecord) {
-						System.out.println(rr.getDomain() + "  " + rr.getRRType() + "  " + rr.getTTL() + "  "
-								+ ((NSResourceRecord) rr).getNS());
-					}
+		int i = 0;
+		while (initCommunication.getInput().getAnswers().isEmpty()) {
+			System.out.println("\nITERACION Nº: " + i);
+
+			/*
+			 * if (!nameServers.isEmpty() && i >
+			 * initCommunication.getTemporal().getAdditonalRecords().size()) {
+			 * System.out.println("ENTRAMOS A ITERATUAR CON NAME SERVERS"); for
+			 * (ResourceRecord rr : nameServers) { Communication
+			 * nameServersCommunication = new
+			 * Communication(initCommunication.getIp(),
+			 * rr.getDomain().toString(), "A"); new
+			 * Cliente().iteraciones(nameServersCommunication, nameServers); } }
+			 * else break;
+			 */
+
+			if (initCommunication.getInput().getAdditonalRecords().get(i) instanceof AResourceRecord) {
+				initCommunication.getOutputData().setAddress(
+						((AResourceRecord) (initCommunication.getInput().getAdditonalRecords().get(i))).getAddress());
+				new PantallaUtils().pantallaRR(initCommunication.getInput(), 0);
+				initCommunication.change();
+
+				if (initCommunication.getInput().getAdditonalRecords().isEmpty()
+						&& initCommunication.getInput().getAnswers().isEmpty()) {
+					System.out.println("Está todo VACIO");
+					nameServers = initCommunication.getInput().getNameServers();
+					//initCommunication.setFinalInput(initCommunication.getInput());
+					new PantallaUtils().pantallaRR(initCommunication.getInput(), 1);
+					initCommunication.setInput(initCommunication.getTemporal());
+					i++;
+				} else {
+					initCommunication.setTemporal(initCommunication.getInput());
+					i = 0;
 				}
-			System.out.println("\nAdditional Section:\n\n");
-			for (ResourceRecord rr : answerMessage.getAdditonalRecords()) {
-				if (rr instanceof AResourceRecord)
-					System.out.println(rr.getDomain() + "  " + rr.getRRType() + "  " + rr.getTTL() + "  "
-							+ ((AResourceRecord) rr).getAddress());
-				if (rr instanceof AAAAResourceRecord)
-					System.out.println(rr.getDomain() + "  " + rr.getRRType() + "  " + rr.getTTL() + "  "
-							+ ((AAAAResourceRecord) rr).getAddress());
-				if (rr instanceof NSResourceRecord) {
-					System.out.println(rr.getDomain() + "  " + rr.getRRType() + "  " + rr.getTTL() + "  "
-							+ ((NSResourceRecord) rr).getNS());
-				}
+
+				i++;
+				continue;
 			}
-		} else {
-			System.out.println("\nName servers:\n\n");
-			for (ResourceRecord rr : answerMessage.getNameServers()) {
-				System.out.println(((NSResourceRecord) rr).getNS());
+
+			else if (initCommunication.getInput().getAdditonalRecords().get(i) instanceof AAAAResourceRecord) {
+				System.out.println("Servidor AAAA");
+				i++;
+				continue;
 			}
 		}
+
+		return;
+
 	}
 
 	public String validacionComando(String[] args) {
@@ -200,23 +169,4 @@ public class Cliente {
 		return protocol;
 	}
 
-	public void validacionParametros() {
-
-	}
-
-	public Message generarMensaje(String entrada) {
-
-		String[] split = entrada.split("\\s* \\s*");
-		Message message = new Message(split[1], RRType.valueOf(split[0]), false);
-		return message;
-	}
-
-	/**
-	 * Método para validar la IP si es necesario
-	 * 
-	 * @param ip
-	 */
-	public void isAnIP(InetAddress ip) {
-
-	}
 }
