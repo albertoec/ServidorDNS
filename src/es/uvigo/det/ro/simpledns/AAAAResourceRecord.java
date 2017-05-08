@@ -72,4 +72,11 @@ public class AAAAResourceRecord extends ResourceRecord {
 
         return os.toByteArray();
     }
+
+	@Override
+	public String toString() {
+		return  "   " + addr.toString().replace("/", "");
+	}
+    
+    
 }

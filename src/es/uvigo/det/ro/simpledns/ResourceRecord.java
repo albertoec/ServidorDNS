@@ -46,6 +46,14 @@ public class ResourceRecord {
                 return new AAAAResourceRecord(temp);
             case NS:
                 return new NSResourceRecord(temp, message);
+            case CNAME:
+            	return new CNAMEResourceRecord(temp, message);
+            case MX:
+            	return new MXResourceRecord(temp, message);
+            case SOA:
+            	return new SOAResourceRecord(temp, message);
+            case TXT:
+            	return new TXTResourceRecord(temp, message);
             default:
                 return temp;
         }

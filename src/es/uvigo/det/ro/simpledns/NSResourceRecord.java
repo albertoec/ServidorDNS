@@ -27,36 +27,42 @@ import java.util.logging.Logger;
  * @author Miguel Rodriguez Perez
  */
 public class NSResourceRecord extends ResourceRecord {
-    private final DomainName ns;
+	private final DomainName ns;
 
-    public NSResourceRecord(DomainName domain, int ttl, DomainName ns) {
-        super(domain, NS, ttl, ns.toByteArray());
-        
-        this.ns = ns;
-    }
+	public NSResourceRecord(DomainName domain, int ttl, DomainName ns) {
+		super(domain, NS, ttl, ns.toByteArray());
 
-    protected NSResourceRecord(ResourceRecord decoded, final byte[] message) {
-        super(decoded);
+		this.ns = ns;
+	}
 
-        ns = new DomainName(getRRData(), message);
-    }
+	protected NSResourceRecord(ResourceRecord decoded, final byte[] message) {
+		super(decoded);
 
-    public final DomainName getNS() {
-        return ns;
-    }
-    
-    @Override
-    public byte[] toByteArray() {
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        
-        try {        
-            os.write(super.toByteArray());
-            os.write(ns.toByteArray());
-        } catch (IOException ex) {
-            Logger.getLogger(NSResourceRecord.class.getName()).log(Level.SEVERE, null, ex);
-            System.exit(-1);
-        }        
-        
-        return os.toByteArray();
-    }
+		ns = new DomainName(getRRData(), message);
+	}
+
+	public final DomainName getNS() {
+		return ns;
+	}
+
+	@Override
+	public byte[] toByteArray() {
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+
+		try {
+			os.write(super.toByteArray());
+			os.write(ns.toByteArray());
+		} catch (IOException ex) {
+			Logger.getLogger(NSResourceRecord.class.getName()).log(Level.SEVERE, null, ex);
+			System.exit(-1);
+		}
+
+		return os.toByteArray();
+	}
+
+	@Override
+	public String toString() {
+		return  "   " + ns;
+	}
+
 }

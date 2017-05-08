@@ -16,43 +16,83 @@
  */
 package es.uvigo.det.ro.simpledns;
 
+import java.net.InetAddress;
+
 /**
  *
  * @author Miguel Rodriguez Perez <miguel@det.uvigo.gal>
  */
-class Utils {
+public class Utils {
 
-    public static byte[] int16toByteArray(int i) {
-        byte[] output = new byte[2];
+	public static byte[] int16toByteArray(int i) {
+		byte[] output = new byte[2];
 
-        output[0] = (byte) ((i & 0xFF00) >> 8);
-        output[1] = (byte) (i & 0x00FF);
+		output[0] = (byte) ((i & 0xFF00) >> 8);
+		output[1] = (byte) (i & 0x00FF);
 
-        return output;
-    }
+		return output;
+	}
 
-    public static byte[] int32toByteArray(int i) {
-        byte[] output = new byte[4];
+	public static byte[] int32toByteArray(int i) {
+		byte[] output = new byte[4];
 
-        output[0] = (byte) ((i & 0xFF000000) >> 24);
-        output[1] = (byte) ((i & 0x00FF0000) >> 16);
-        output[2] = (byte) ((i & 0x0000FF00) >> 8);
-        output[3] = (byte) (i & 0x000000FF);
+		output[0] = (byte) ((i & 0xFF000000) >> 24);
+		output[1] = (byte) ((i & 0x00FF0000) >> 16);
+		output[2] = (byte) ((i & 0x0000FF00) >> 8);
+		output[3] = (byte) (i & 0x000000FF);
 
-        return output;
-    }
+		return output;
+	}
 
-    public static int int16fromByteArray(byte[] val) {
-        return (val[0] << 8) + (val[1] & 0xff);
-    }
+	public static int int16fromByteArray(byte[] val) {
+		return (val[0] << 8) + (val[1] & 0xff);
+	}
 
-    public static int int32fromByteArray(byte[] val) {
-        int value = 0;
+	public static int int32fromByteArray(byte[] val) {
+		int value = 0;
 
-        for (int i = 0; i < 4; i++) {
-            value = (value << 8) + (val[i] & 0xff);
-        }
+		for (int i = 0; i < 4; i++) {
+			value = (value << 8) + (val[i] & 0xff);
+		}
 
-        return value;
-    }
+		return value;
+	}
+
+	public static void noAnswer() {
+		System.out.println("\nNo hay respuesta\n");
+	}
+
+	public static void printQ(String protocol, InetAddress ip, Message outputMessage) {
+		// IMPRIMOS EL MENSAJE Q:
+		System.out.println("\nQ: " + protocol + "   " + ip.toString().replace("/", "") + "   "
+				+ outputMessage.getQuestionType() + "   " + outputMessage.getQuestion() + "\n");
+	}
+
+	public static void printA(InetAddress serverIP, ResourceRecord rr) {
+		// IMPRIMOS EL MENSAJE A:
+		if (rr instanceof AResourceRecord) {
+			System.out.println("A:" + "   " + serverIP.toString().replace("/", "") + "   " + rr.getRRType() + "   "
+					+ rr.getTTL() + rr.toString());
+		} else if (rr instanceof AAAAResourceRecord) {
+			System.out.println("A:" + "   " + serverIP.toString().replace("/", "") + rr.getRRType() + "   "
+					+ rr.getTTL() + rr.toString());
+		} else if (rr instanceof NSResourceRecord) {
+			System.out.println("A:" + "   " + serverIP.toString().replace("/", "") + "   " + rr.getRRType() + "   "
+					+ rr.getTTL() + rr.toString());
+		} else if (rr instanceof CNAMEResourceRecord) {
+			System.out.println("A:" + "   " + serverIP.toString().replace("/", "") + "   " + rr.getRRType() + "   "
+					+ rr.getTTL() + rr.toString());
+		} else if (rr instanceof MXResourceRecord) {
+			System.out.println("A:" + "   " + serverIP.toString().replace("/", "") + "   " + rr.getRRType() + "   "
+					+ rr.getTTL() + rr.toString());
+		} else if (rr instanceof TXTResourceRecord) {
+			System.out.println("A:" + "   " + serverIP.toString().replace("/", "") + "   " + rr.getRRType() + "   "
+					+ rr.getTTL() + rr.toString());
+		} else if (rr instanceof SOAResourceRecord) {
+			System.out.println("A:" + "   " + serverIP.toString().replace("/", "") + "   " + rr.getRRType() + "   "
+					+ rr.getTTL() + rr.toString());
+		}
+
+	}
+
 }
