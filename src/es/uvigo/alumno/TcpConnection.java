@@ -22,6 +22,7 @@ public class TcpConnection {
 
 	private Socket socket;
 	private InetAddress ip;
+	public int i;
 	protected static int PORT = 53;
 	private final String PROTOCOL = "TCP";
 	OutputStream out;
@@ -114,7 +115,6 @@ public class TcpConnection {
 
 						for (ResourceRecord rrr : answerMessage.getAnswers()) {
 							if (rrr.getRRType() == askMessage.getQuestionType()) {
-							//	savedRoute.getAnswers().add(rrr);
 								Utils.printA(ip, rrr);
 							}
 						}
@@ -169,7 +169,8 @@ public class TcpConnection {
 						Utils.printA(ip, rr);
 						savedRoute.getAnswers().add(rr);
 						savedRoute.setTtl(((SOAResourceRecord) rr).getMinimum());
-					}
+						savedRoute.i = 1;
+					}		
 				}
 				return null;
 			}

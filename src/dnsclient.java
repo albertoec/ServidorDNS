@@ -70,6 +70,10 @@ public class dnsclient {
 
 				if (isCache() != null) {
 					System.out.println("\nCaché:\n ");
+
+					if (cache.get(rrType.toString().concat(domain)).i == 1)
+						System.out.println("\nNo hay respuesta\n");
+
 					cache.get(rrType.toString().concat(domain)).showCache();
 
 				} else {
@@ -132,6 +136,10 @@ public class dnsclient {
 				udpConnection = new UdpConnection(InetAddress.getByName(args[1]), outputMessage.getQuestionType());
 
 				if (isCache() != null) {
+
+					if (cache.get(rrType.toString().concat(domain)).i == 1)
+						System.out.println("\nNo hay respuesta\n");
+
 					cache.get(rrType.toString().concat(domain)).showCache();
 
 				} else {

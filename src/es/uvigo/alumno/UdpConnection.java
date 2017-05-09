@@ -70,7 +70,7 @@ public class UdpConnection {
 
 						for (ResourceRecord rrr : answerMessage.getAnswers()) {
 							if (rrr.getRRType() == askMessage.getQuestionType()) {
-								//savedRoute.getAnswers().add(rrr);
+								// savedRoute.getAnswers().add(rrr);
 								Utils.printA(ip, rrr);
 							}
 						}
@@ -86,7 +86,7 @@ public class UdpConnection {
 						IPPrivada = ((AResourceRecord) rr).getAddress();
 						Utils.printA(ip, answerMessage.getNameServers().get(i));
 						Utils.printA(ip, rr);
-						//savedRoute.getAnswers().add(rr);
+						// savedRoute.getAnswers().add(rr);
 						break;
 					}
 					i++;
@@ -103,7 +103,7 @@ public class UdpConnection {
 						respuesta = this.connection(mensaje, IP, savedRoute);
 						if (respuesta == null) {
 							continue;
-						}/*miraaaaar error l imprimir*/
+						}
 						for (ResourceRecord rrr : respuesta.getAnswers()) {
 							if (rrr instanceof AResourceRecord) {
 								Utils.printA(ip, rrr);
@@ -119,13 +119,13 @@ public class UdpConnection {
 				}
 			}
 
-			
 			if (IPPrivada == null) {
-				for(ResourceRecord rr :answerMessage.getNameServers()){
-					if(rr instanceof SOAResourceRecord){			
+				for (ResourceRecord rr : answerMessage.getNameServers()) {
+					if (rr instanceof SOAResourceRecord) {
 						Utils.printA(ip, rr);
 						savedRoute.getAnswers().add(rr);
 						savedRoute.setTtl(((SOAResourceRecord) rr).getMinimum());
+						savedRoute.i = 1;
 					}
 				}
 				return null;
