@@ -69,7 +69,6 @@ public class dnsclient {
 				Message outputMessage = generarMensaje();
 
 				if (isCache() != null) {
-					System.out.println("\nCaché:\n ");
 
 					if (cache.get(rrType.toString().concat(domain)).i == 1)
 						Utils.noAnswer();
