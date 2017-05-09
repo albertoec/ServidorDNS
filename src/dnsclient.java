@@ -50,6 +50,9 @@ public class dnsclient {
 			e.printStackTrace();
 		}
 	}
+	
+	
+	
 
 	public void tcpClient(String[] args) throws UnknownHostException, IOException {
 
