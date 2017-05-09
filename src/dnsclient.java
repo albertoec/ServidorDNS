@@ -72,7 +72,7 @@ public class dnsclient {
 					System.out.println("\nCaché:\n ");
 
 					if (cache.get(rrType.toString().concat(domain)).i == 1)
-						System.out.println("\nNo hay respuesta\n");
+						Utils.noAnswer();
 
 					cache.get(rrType.toString().concat(domain)).showCache();
 
@@ -138,7 +138,7 @@ public class dnsclient {
 				if (isCache() != null) {
 
 					if (cache.get(rrType.toString().concat(domain)).i == 1)
-						System.out.println("\nNo hay respuesta\n");
+						Utils.noAnswer();
 
 					cache.get(rrType.toString().concat(domain)).showCache();
 

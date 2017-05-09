@@ -38,8 +38,6 @@ public class Cache {
 
 	public void showCache() {
 		
-		System.out.println();
-		
 		for (ResourceRecord rr : answers) {
 			System.out.println("A:" + "   "+ "CACHE"+ "   " + rr.getRRType() + "   " + getActualTTL() + rr.toString());
 		}
