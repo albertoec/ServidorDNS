@@ -75,7 +75,7 @@ public class dnsclient {
 
 					if (cache.get(rrType.toString().concat(domain)).i == 1)
 						Utils.noAnswer();
-					Utils.printQ(rrType.toString(), tcpConnection.getIp(), outputMessage);
+					Utils.printQ("TCP", tcpConnection.getIp(), outputMessage);
 					cache.get(rrType.toString().concat(domain)).showCache();
 
 				} else {
@@ -141,7 +141,7 @@ public class dnsclient {
 					
 					if (cache.get(rrType.toString().concat(domain)).i == 1)
 						Utils.noAnswer();
-					Utils.printQ(rrType.toString(), udpConnection.getIP(), outputMessage);
+					Utils.printQ("UDP", udpConnection.getIP(), outputMessage);
 					cache.get(rrType.toString().concat(domain)).showCache();
 
 				} else {
