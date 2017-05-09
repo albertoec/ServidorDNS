@@ -70,7 +70,7 @@ public class UdpConnection {
 
 						for (ResourceRecord rrr : answerMessage.getAnswers()) {
 							if (rrr.getRRType() == askMessage.getQuestionType()) {
-								savedRoute.getAnswers().add(rrr);
+								//savedRoute.getAnswers().add(rrr);
 								Utils.printA(ip, rrr);
 							}
 						}

@@ -53,7 +53,6 @@ public class dnsclient {
 
 	public void tcpClient(String[] args) throws UnknownHostException, IOException {
 
-
 		Scanner stadin = new Scanner(System.in);
 		String entrada;
 		System.out.println("\nIntroduzca el dominio a traducir:\n");
@@ -69,7 +68,6 @@ public class dnsclient {
 
 				Message outputMessage = generarMensaje();
 
-	
 				if (isCache() != null) {
 					System.out.println("\nCaché:\n ");
 					cache.get(rrType.toString().concat(domain)).showCache();
@@ -82,15 +80,17 @@ public class dnsclient {
 					Message answer = tcpConnection.connection(outputMessage, InetAddress.getByName(args[1]),
 							newRegister);
 
-					if (answer == null){
+					if (answer == null) {
 						Utils.noAnswer();
-					}
-					else if (!answer.getAnswers().isEmpty()) {
+					} else if (!answer.getAnswers().isEmpty()) {
 						newRegister.setTtl(answer.getAnswers().get(0).getTTL());
+						for (ResourceRecord rr : answer.getAnswers()) {
+							newRegister.getAnswers().add(rr);
+						}
 
 					} else {
 						for (ResourceRecord rr : answer.getNameServers()) {
-							//newRegister.getAnswers().add(rr.);
+							// newRegister.getAnswers().add(rr.);
 							Utils.printA(tcpConnection.getIp(), rr);
 						}
 					}
@@ -142,19 +142,21 @@ public class dnsclient {
 					Message answer = udpConnection.connection(outputMessage, InetAddress.getByName(args[1]),
 							newRegister);
 
-					if (answer == null){
+					if (answer == null) {
 						Utils.noAnswer();
-					}
-					 if (!answer.getAnswers().isEmpty()) {
+					} else if (!answer.getAnswers().isEmpty()) {
 						newRegister.setTtl(answer.getAnswers().get(0).getTTL());
+						for (ResourceRecord rr : answer.getAnswers()) {
+							newRegister.getAnswers().add(rr);
+						}
 
 					} else {
 						for (ResourceRecord rr : answer.getNameServers()) {
 							Utils.printA(udpConnection.getIP(), rr);
-							//newRegister.getAnswers().add(rr);
+							// newRegister.getAnswers().add(rr);
 						}
 					}
-					
+
 					cache.put(rrType.toString().concat(domain), newRegister);
 				}
 
@@ -167,7 +169,7 @@ public class dnsclient {
 			} catch (UnknownHostException e) {
 				System.out.println("Formato IP incorrecto: " + args[1]);
 				break;
-			}finally {
+			} finally {
 				System.out.println("\nIntroduzca el dominio a traducir:\n");
 			}
 		}
@@ -202,7 +204,7 @@ public class dnsclient {
 			System.out.println("\n\n\tUso: -(t|u) DsServerIPaddr\n\n");
 			System.exit(0);
 		}
-		
+
 		return;
 	}
 
